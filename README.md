@@ -17,4 +17,11 @@ If the current price has stayed below the moving average for a while the price i
 <h4>How to know if there is no trend to a stock price?</h4>
 If the current price has fluctuates like a pendulum around the moving average for a while the price is in an sidweways trend. Generally herre we want to stay away but if we want to take some risks we can try to predict when we are at the bottom of the swing so we can buy and consequently sell when we are at the top of the swing.
 
+# My Strategy
+<h4>What SMA's will I be using.</h4>
+20 day sma ---> Short Term Trend
+50 day sma ---> Intermediate Term Trend
+200 day sma ---> Long Term Trend
 
+<h4>Why?</h4>
+As said above it helps you decide the trends as we talked above and while it may not give you better trades it helps you avoid making bad ones.
