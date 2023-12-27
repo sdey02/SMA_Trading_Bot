@@ -19,9 +19,11 @@ If the current price has fluctuates like a pendulum around the moving average fo
 
 # My Strategy
 <h4>What SMA's will I be using.</h4>
-20 day sma ---> Short Term Trend
-50 day sma ---> Intermediate Term Trend
-200 day sma ---> Long Term Trend
+20 Day SMA ---> Short Term Trend
+<br>
+50 Day SMA ---> Intermediate Term Trend
+<br>
+200 Day SMA ---> Long Term Trend
 
 <h4>Why?</h4>
 As said above it helps you decide the trends as we talked above and while it may not give you better trades it helps you avoid making bad ones.
