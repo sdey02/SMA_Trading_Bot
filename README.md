@@ -1,4 +1,4 @@
-## Background
+# Background
 With a intrest in Quant and furthering my python abilites I have taken up the project of building a simple SMA trading bot. Attached below will be the research and a general overview of what the bot looks for and how it works.
 
 # High Level Overview
