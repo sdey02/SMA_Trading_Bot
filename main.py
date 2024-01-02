@@ -1,61 +1,47 @@
-import numpy as np
-import math
-import polars as pl
-import yahoo_fin; from yahoo_fin import stock_info as si
+import backtrader as bt
+import yfinance as yf
+import matplotlib
 
-stocks = pl.read_csv("sp_500_stocks.csv")
 
-final_dataframe = pl.DataFrame(
-    {
-        "Ticker": [],
-        "Buy or Sell?": [], 
-        "Current Price": [],
-        "20 Day Trend": [],
-        "50 Day Trend": [],
-        "200 Day Trend": [],
-        "Current Trend": [],
-    }
-)
+apple = yf.download(tickers='AAPL') # Get Stock data from yf
 
-trend_dataframe = pl.DataFrame(
-    {
-        "Ticker": [],
-        "Uptrend Counter": [],
-        "Downtrend Counter": [],
-    }
-)
+apple_parsed = bt.feeds.PandasData(dataname = apple) # Parse YF data for cerebro engine
 
-final_dataframe = final_dataframe.with_columns(
-    [
-        pl.col("Ticker").cast(pl.Utf8),
-        pl.col("Buy or Sell?").cast(pl.Utf8),
-        pl.col("Current Price").cast(pl.Float64),
-        pl.col("20 Day Trend").cast(pl.Float64),
-        pl.col("50 Day Trend").cast(pl.Float64),
-        pl.col("200 Day Trend").cast(pl.Float64),
-        pl.col("Current Trend").cast(pl.Utf8),
-    ]
-)
 
-for stock in stocks['Ticker'][:5]:
-    twenty_day_sma = yahoo_fin.stock_info.get_data(stock, interval='1d')['close'][-20:].mean()
-    fifty_day_sma = yahoo_fin.stock_info.get_data(stock, interval='1d')['close'][-50:].mean()
-    two_hundred_day_sma = yahoo_fin.stock_info.get_data(stock, interval='1d')['close'][-200:].mean()
-    price = yahoo_fin.stock_info.get_live_price(stock)
-
-    stock_info = pl.DataFrame(
-        {
-            "Ticker": [stock],
-            "Buy or Sell?": ['N/A'], 
-            "Current Price": [price],
-            "20 Day Trend": [twenty_day_sma],
-            "50 Day Trend": [fifty_day_sma],
-            "200 Day Trend": [two_hundred_day_sma],
-            "Current Trend": ['N/A'],
-        }
+class SmaCross(bt.Strategy):
+    # list of parameters which are configurable for the strategy
+    params = dict(
+        pfast = 50,  # period for the fast moving average
+        pslow = 200,   # period for the slow moving average
     )
 
-    final_dataframe = pl.concat([final_dataframe, stock_info])
+    def __init__(self):
+        sma1 = bt.ind.SMA(period = self.p.pfast)  # fast moving average
+        sma2 = bt.ind.SMA(period = self.p.pslow)  # slow moving average
 
+        self.crossover_50_200 = bt.ind.CrossOver(sma1, sma2)  # crossover signal
+        self.MACD = bt.ind.MACD() # MCAD Line
 
-print(final_dataframe)
+    def next(self):
+        if not self.position:  # not in the market
+            if self.crossover_50_200 > 0:  # if fast crosses slow to the upside
+                self.buy()  # enter long
+
+        elif self.crossover_50_200 < 0:  # in the market & cross to the downside
+            self.close()  # close long position
+
+cerebro = bt.Cerebro() # Initiate the Cerebro Engine
+
+cerebro.adddata(apple_parsed) # Load Historical Data
+
+cerebro.broker.setcash(100.0) # Set Starting Cash
+
+cerebro.addstrategy(SmaCross) # Load Strategy
+
+print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print out the starting value of portfolio
+
+cerebro.run() # Run Engine
+
+print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print out the final value of portfolio
+
+print(cerebro.plot())
